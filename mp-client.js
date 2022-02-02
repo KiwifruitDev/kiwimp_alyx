@@ -76,9 +76,8 @@ export function StartClient(config) {
             case 'map':
                 if(!message.changelevel || message.username !== config.client_username && (config.client_anarchy_mode !== "true" && message.host || config.client_anarchy_mode.toLowerCase() === "true")) {
                     // Update map.
-                    if(vconsole_server.mapName !== message.map && message.changelevel === true || message.changelevel === false) {
+                    if(message.changelevel && message.username !== config.client_username || !message.changelevel)
                         await vconsole_server.WriteCommand(`addon_play ${message.map};addon_tools_map ${message.map}`);
-                    }
                 }
                 break;
             case 'physicsobject':
@@ -92,7 +91,7 @@ export function StartClient(config) {
                             if(!vconsole_server.physicsObjects[i].movingLocally) {
                                 // Name is arbitrary, startLocation is unique.
                                 if(!vconsole_server.physicsObjects[i].motionDisabled) {
-                                    await vconsole_server.WriteCommand(`ent_fire ${vconsole_server.physicsObjects[i].name} disablemotion;ent_fire ${vconsole_server.physicsObjects[i].name} disableinteraction`);
+                                    await vconsole_server.WriteCommand(`ent_fire ${vconsole_server.physicsObjects[i].name} sleep;ent_fire ${vconsole_server.physicsObjects[i].name} disablemotion;ent_fire ${vconsole_server.physicsObjects[i].name} disableinteraction`);
                                     vconsole_server.physicsObjects[i].motionDisabled = true;
                                 }
                                 // Update location.
@@ -104,7 +103,7 @@ export function StartClient(config) {
                                 vconsole_server.physicsObjects[i].interval = setTimeout(() => {
                                     if(Date.now() - vconsole_server.physicsObjects[i].updateTime >= config.client_grace_period) {
                                         vconsole_server.physicsObjects[i].motionDisabled = false;
-                                        vconsole_server.WriteCommand(`ent_fire ${vconsole_server.physicsObjects[i].name} enablemotion;ent_fire ${vconsole_server.physicsObjects[i].name} enableinteraction`);
+                                        vconsole_server.WriteCommand(`ent_fire ${vconsole_server.physicsObjects[i].name} wake;ent_fire ${vconsole_server.physicsObjects[i].name} enablemotion;ent_fire ${vconsole_server.physicsObjects[i].name} enableinteraction`);
                                     }
                                     vconsole_server.physicsObjects[i].interval = null;
                                 }, config.client_grace_period);
