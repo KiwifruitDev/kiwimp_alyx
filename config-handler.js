@@ -61,6 +61,7 @@ let activeprompts = [];
   */
  function StartConfigSetup() {
     return new Promise((resolve, reject) => {
+        console.log(chalk.red.bold(`\nThis version of KCOM is due to be replaced by a port to the .NET framework.\nPlease keep a look out for a future update.\nWhen this happens, updates will no longer be available for this version.\n`));
         console.log(chalk.magenta.bold("\nWelcome to KCOM's config wizard! This will guide you through the process of setting up the config JSON file."));
         console.log(chalk.magenta("Pay attention to the prompts and the types of values you can enter, invalid values will output their default value.\nPress enter to use the default value.\n"));
         for(let key in configtemplate) {

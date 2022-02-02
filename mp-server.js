@@ -194,7 +194,7 @@ export function StartServer(config) {
                         const victim = connections[message.victimIndex];
                         if(victim && !victim.player.dead) {
                             victim.player.lastDamage = Date.now();
-                            if(victim.player.health - message.damage <= 0) {
+                            if(victim.player.health - Math.floor(message.damage/2) <= 0) {
                                 victim.player.dead = true;
                                 victim.player.health = 100; // DO NOT ACTUALLY KILL THE PLAYER.
                                 // Send killsound to player.
@@ -210,7 +210,7 @@ export function StartServer(config) {
                                     victim.player.health = 100; // Just in case.
                                 }, 250);
                             } else {
-                                victim.player.health -= message.damage; // We trust the client to not send us bad data.
+                                victim.player.health -= Math.floor(message.damage/2); // We trust the client to not send us bad data.
                                 // Hurt!
                                 victim.socket.send(JSON.stringify({
                                     type: 'command',

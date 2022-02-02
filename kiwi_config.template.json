@@ -84,7 +84,7 @@
         "skip": {
             "false": "complete_setup"
         },
-        "description": "If true, the client system will be enabled and will connect to a remote server.\nIf you are hosting a dedicated wserver, you should set this to false.\nNote: To create a listen server, enable both the server and client and set both IPs to localhost."
+        "description": "If true, the client system will be enabled and will connect to a remote server.\nIf you are hosting a dedicated server, you should set this to false.\nNote: To create a listen server, enable both the server and client and set both IPs to localhost."
     },
     "client_ip": {
         "name": "Client: Remote IP Address",
