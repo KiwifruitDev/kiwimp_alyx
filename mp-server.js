@@ -18,7 +18,7 @@
 import { WebSocketServer } from 'ws';
 import { createServer, IncomingMessage } from 'http';
 import chalk from 'chalk';
-import { Client, Player } from './classes.js';
+import { Client, Entity, Player } from './classes.js';
 
 // Variables
 let connections = [];
@@ -40,6 +40,7 @@ function CreateSlot(me, ws, config) {
             if(slots[i] == false) {
                 // Create a new player.
                 slots[i] = true;
+                me.socket = ws;
                 me.player = new Player(i);
                 return i;
             }
@@ -69,7 +70,7 @@ export function StartServer(config) {
         noServer: true
     });
     // Handle connections.
-    wss.on('connection', (ws, request, me) => {
+    wss.on('connection', (ws, request, me, newPlayer) => {
         // Client connected.
         console.log(chalk.cyan(`[SV] Client connected: ${me.username}`));
         wss.clients.forEach(function each(client) {
@@ -78,18 +79,25 @@ export function StartServer(config) {
                 message: `${me.username} connected.`
             }));
         });
-        CreateSlot(me, ws, config);
+        // Create a new slot.
+        if(newPlayer)
+            CreateSlot(me, ws, config);
         // Send memo to the client.
-        ws.send(JSON.stringify({
-            type: 'status',
-            message: config.server_memo
-        }));
+        if(config.server_memo !== undefined && config.server_memo !== "") {
+            ws.send(JSON.stringify({
+                type: 'status',
+                message: config.server_memo,
+                playerlist: connections.map(client => client.player.username)
+            }));
+        }
         // Tell the client to change map.
-        ws.send(JSON.stringify({
-            type: 'map',
-            map: map,
-            changelevel: false
-        }));
+        if(map !== undefined && map !== "") {
+            ws.send(JSON.stringify({
+                type: 'map',
+                map: map,
+                changelevel: false
+            }));
+        }
         ws.isAlive = true;
         let index = connections.push(me);
         // Keep the connection alive.
@@ -132,6 +140,12 @@ export function StartServer(config) {
                 // Movement.
                 case "movement":
                     if(me.player && !me.player.dead) {
+                        if(me.reportedMap != message.map) { // Changed map or just spawned in.
+                            me.startLocation.x = message.localPlayer.position.x;
+                            me.startLocation.y = message.localPlayer.position.y;
+                            me.startLocation.z = message.localPlayer.position.z;
+                            me.reportedMap = message.map;
+                        }
                         me.player.position.x = message.localPlayer.position.x;
                         me.player.position.y = message.localPlayer.position.y;
                         me.player.position.z = message.localPlayer.position.z;
@@ -179,18 +193,38 @@ export function StartServer(config) {
                     if(me.player && !me.player.dead) {
                         const victim = connections[message.victimIndex];
                         if(victim && !victim.player.dead) {
-                            victim.player.health -= message.damage; // We trust the client to not send us bad data.
                             victim.player.lastDamage = Date.now();
-                            if(victim.player.health <= 0) {
+                            if(victim.player.health - Math.floor(message.damage/2) <= 0) {
                                 victim.player.dead = true;
-                                victim.player.health = 0;
+                                victim.player.health = 100; // DO NOT ACTUALLY KILL THE PLAYER.
+                                // Send killsound to player.
+                                ws.send(JSON.stringify({
+                                    type: 'command',
+                                    command: `play sounds/damage/last_hit.vsnd`
+                                }));
+                                // Tell victim to respawn
+                                victim.player.teleport = victim.startLocation;
+                                setTimeout(() => {
+                                    victim.player.teleport = new Entity(); // Stop teleporting.
+                                    victim.player.dead = false;
+                                    victim.player.health = 100; // Just in case.
+                                }, 250);
+                            } else {
+                                victim.player.health -= Math.floor(message.damage/2); // We trust the client to not send us bad data.
+                                // Hurt!
+                                victim.socket.send(JSON.stringify({
+                                    type: 'command',
+                                    command: `play sounds/player/damage/bullet_0${Math.floor(Math.random() * 3) + 1}.vsnd` // Randomize bullet sound up to 3.
+                                }));
                             }
                         }
                     }
                     break;
                 case "alive":
                     if(me.player) {
+                        me.player.teleport = new Entity(); // Stop teleporting.
                         me.player.dead = false;
+                        me.player.health = 100;
                     }
                     break;
                 case 'movephysics':
@@ -200,6 +234,8 @@ export function StartServer(config) {
                             // Otherwise it will stop moving.
                             client.send(JSON.stringify({
                                 type: 'physicsobject',
+                                username: me.player.username,
+                                host: config.server_host_username !== undefined && config.server_host_username !== "" && client.username === config.server_host_username,
                                 position: message.position,
                                 angles: message.angles,
                                 startLocation: message.startLocation
@@ -214,6 +250,8 @@ export function StartServer(config) {
                             // Otherwise it will press twice.
                             client.send(JSON.stringify({
                                 type: 'button',
+                                username: me.player.username,
+                                host: config.server_host_username !== undefined && config.server_host_username !== "" && client.username === config.server_host_username,
                                 startLocation: message.startLocation
                             }));
                         });
@@ -224,8 +262,10 @@ export function StartServer(config) {
                         map = message.map; // Change the map for future clients.
                         wss.clients.forEach(function each(client) {
                             // Tell the client to change map.
-                            ws.send(JSON.stringify({
+                            client.send(JSON.stringify({
                                 type: 'map',
+                                username: me.player.username,
+                                host: config.server_host_username !== undefined && config.server_host_username !== "" && client.username === config.server_host_username,
                                 map: message.map,
                                 changelevel: true
                             }));
@@ -237,6 +277,8 @@ export function StartServer(config) {
                         wss.clients.forEach(function each(client) {
                             client.send(JSON.stringify({
                                 type: 'breakphys',
+                                username: me.player.username,
+                                host: config.server_host_username !== undefined && config.server_host_username !== "" && client.username === config.server_host_username,
                                 startLocation: message.startLocation
                             }));
                         });
@@ -247,6 +289,8 @@ export function StartServer(config) {
                         wss.clients.forEach(function each(client) {
                             client.send(JSON.stringify({
                                 type: 'triggerbrush',
+                                username: me.player.username,
+                                host: config.server_host_username !== undefined && config.server_host_username !== "" && client.username === config.server_host_username,
                                 startLocation: message.startLocation,
                                 output: message.output,
                                 once: message.once
@@ -271,7 +315,7 @@ export function StartServer(config) {
             wss.clients.forEach(function each(client) {
                 client.send(JSON.stringify({
                     type: 'status',
-                    message: `${me.username} has disconnected.`
+                    message: `${me.username} disconnected.`
                 }));
             });
         });
@@ -281,6 +325,7 @@ export function StartServer(config) {
                 const c = connections[i];
                 connectioninfo_json.push({
                     username: c.username,
+                    host: config.server_host_username !== undefined && config.server_host_username !== "" && c.username === config.server_host_username,
                     player: {
                         id: c.player.id || 0,
                         health: c.player.health || 0,
@@ -374,11 +419,9 @@ export function StartServer(config) {
             };
             ws.send(JSON.stringify({
                 type: 'update',
-                connectioninfo: {
-                    connections: connectioninfo_json
-                }
+                connectioninfo: connectioninfo_json
             }));
-        }, 0);
+        }, config.server_update_interval);
     });
     // Handle server closure.
     wss.on('close', function close() {
@@ -391,14 +434,14 @@ export function StartServer(config) {
     });
     // Authenticate clients.
     server.on('upgrade', (request, socket, head) => {
-        AuthenticateClient(config, request, (err, client) => {
+        AuthenticateClient(config, request, (err, client, newPlayer) => {
             if (err) {
                 socket.write('HTTP/1.1 401 Unauthorized\r\n\r\n');
                 socket.destroy();
                 return;
             }
             wss.handleUpgrade(request, socket, head, (ws) => {
-                wss.emit('connection', ws, request, client);
+                wss.emit('connection', ws, request, client, newPlayer);
             });
         });
     });
@@ -415,12 +458,13 @@ export function StartServer(config) {
             ws.isAlive = false;
             ws.ping();
         });
-    }, 30000);
+    }, config.server_timeout_interval);
     // Close the server when the process closes.
     process.on('exit', () => {
         wss.clients.forEach(function each(ws) {
             ws.terminate();
         });
+        clearInterval(interval);
         server.close();
     });
     // Close the server when CTRL+C is pressed.
@@ -428,6 +472,7 @@ export function StartServer(config) {
         wss.clients.forEach(function each(ws) {
             ws.terminate();
         });
+        clearInterval(interval);
         server.close();
         process.exit();
     });
@@ -470,15 +515,19 @@ function AuthenticateClient(config, request, callback) {
     if(username === undefined || authid === undefined || username === '' || authid === '') {
         return callback(new Error('Authorization header contains an invalid username or AuthID.'));
     }
+    // Check if the client is using the host's username but not the host's AuthID.
+    if(config.server_host_username !== undefined && config.server_host_username !== "" && config.server_host_authid !== undefined && config.server_host_authid !== "" && username === config.server_host_username && authid !== config.server_host_authid) {
+        return callback(new Error('Authorization header contains an invalid AuthID.'));
+    }
     // Check if a client with the same username already exists.
     for (let i = 0; i < connections.length; i++) {
         if (connections[i].username === username && connections[i].authid === authid) {
             // Client reconnected.
-            return callback(null, connections[i]);
+            return callback(null, connections[i], false);
         }
         if (connections[i].username === username) {
             return callback(new Error('A client with the same username already exists.'));
         }
     }
-    return callback(null, new Client(username, authid));
+    return callback(null, new Client(username, authid), true);
 }

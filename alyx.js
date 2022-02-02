@@ -126,7 +126,8 @@ export function InitVConsole(ws, config) {
                                 localPlayer.rightHand.angles.z = parseFloat(args[11]);
                                 ws.send(JSON.stringify({
                                     type: "movement",
-                                    localPlayer: localPlayer
+                                    localPlayer: localPlayer,
+                                    map: vconsole_server.mapName
                                 }));
                                 break;
                             case "PLYR":
@@ -139,7 +140,8 @@ export function InitVConsole(ws, config) {
                                 localPlayer.health = parseFloat(args[6]);
                                 ws.send(JSON.stringify({
                                     type: "movement",
-                                    localPlayer: localPlayer
+                                    localPlayer: localPlayer,
+                                    map: vconsole_server.mapName
                                 }));
                                 break;
                             case "HEAD":
@@ -390,7 +392,7 @@ export function InitVConsole(ws, config) {
                     && !message.includes("KCOM")
                     && !message.includes("===============")
                     && !message.includes("Connected.")
-                    && !message.includes("metropolice")) {
+                    && !message.toLowerCase().includes("metropolice")) {
                     console.log(chalk.yellow(`[VC] [PRNT] ${message}`));
                 }
             }
@@ -411,8 +413,8 @@ export function InitVConsole(ws, config) {
 }
 
 export async function UpdateVScript(vconsole_server, connectioninfo, config) {
-    for(let i = 0; i < connectioninfo.connections.length; i++) {
-        const user = connectioninfo.connections[i];
+    for(let i = 0; i < connectioninfo.length; i++) {
+        const user = connectioninfo[i];
         const player = players[user.player.id];
         //if(JSON.stringify(user.player) != JSON.stringify(player.player) || user.username == config.client_username) {
             // Clientside stuff
@@ -437,10 +439,8 @@ export async function UpdateVScript(vconsole_server, connectioninfo, config) {
                 // If the player is being damaged, don't update the health if it's greater than the previous value.
                 // Otherwise, just set it as-is.
                 if(user.player.health != player.player.health) {
-                    if(!user.player.dead && user.player.health >= 0) {
+                    if(user.player.health > 0) {
                         vconsole_server.WriteCommand(`ent_fire player sethealth ${user.player.health}`);
-                    } else {
-                        vconsole_server.WriteCommand(`kill`);
                     }
                 };
             } else { // Don't update the player for the client

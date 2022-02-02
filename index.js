@@ -34,7 +34,7 @@ console.log(chalk.blueBright(
     +`===============================================`
 ));
 
-// Start the config setup process, or load config if it exists.
+// Start the config wizard, or load config if it exists.
 confighandler.LoadConfig().then((config) => {
     if(config.server_enabled === 'true') {
         // Start the server.
