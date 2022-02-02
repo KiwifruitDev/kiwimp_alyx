@@ -141,9 +141,9 @@ export function StartServer(config) {
                 case "movement":
                     if(me.player && !me.player.dead) {
                         if(me.reportedMap != message.map) { // Changed map or just spawned in.
-                            me.startLocation.x = message.position.x;
-                            me.startLocation.y = message.position.y;
-                            me.startLocation.z = message.position.z;
+                            me.startLocation.x = message.localPlayer.position.x;
+                            me.startLocation.y = message.localPlayer.position.y;
+                            me.startLocation.z = message.localPlayer.position.z;
                             me.reportedMap = message.map;
                         }
                         me.player.position.x = message.localPlayer.position.x;
