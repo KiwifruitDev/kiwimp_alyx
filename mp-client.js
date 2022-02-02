@@ -74,10 +74,9 @@ export function StartClient(config) {
                 alyx.UpdateVScript(vconsole_server, message.connectioninfo, config);
                 break;
             case 'map':
-                if(!message.changelevel || message.username !== config.client_username && (config.client_anarchy_mode !== "true" && message.host || config.client_anarchy_mode.toLowerCase() === "true")) {
+                if(message.changelevel || message.username !== config.client_username && (config.client_anarchy_mode !== "true" && message.host || config.client_anarchy_mode.toLowerCase() === "true")) {
                     // Update map.
-                    if(message.changelevel && message.username !== config.client_username || !message.changelevel)
-                        await vconsole_server.WriteCommand(`addon_play ${message.map};addon_tools_map ${message.map}`);
+                    await vconsole_server.WriteCommand(`addon_play ${message.map};addon_tools_map ${message.map}`);
                 }
                 break;
             case 'physicsobject':

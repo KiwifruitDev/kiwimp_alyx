@@ -17,6 +17,7 @@
 // Modules
 import * as net from 'net';
 import chalk from 'chalk';
+import {Socket} from 'net';
 
 // Exports
 
@@ -31,11 +32,22 @@ export class Client {
     authid = '';
     memo = '';
     interval = null;
+    reportedMap = "";
     /**
      * Player entity linked to the client.
      * @type {Player}
      */
     player = null;
+    /**
+     * Start entity/position
+     * @type {@Entity}
+     */
+    startLocation = new Entity();
+    /**
+     * Websocket connection.
+     * @type {@Socket}
+     */
+    socket = null;
     constructor (username, authid) {
         this.username = username;
         this.authid = authid;

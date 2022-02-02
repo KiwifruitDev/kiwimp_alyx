@@ -18,7 +18,7 @@
 import { WebSocketServer } from 'ws';
 import { createServer, IncomingMessage } from 'http';
 import chalk from 'chalk';
-import { Client, Player } from './classes.js';
+import { Client, Entity, Player } from './classes.js';
 
 // Variables
 let connections = [];
@@ -40,6 +40,7 @@ function CreateSlot(me, ws, config) {
             if(slots[i] == false) {
                 // Create a new player.
                 slots[i] = true;
+                me.socket = ws;
                 me.player = new Player(i);
                 return i;
             }
@@ -139,6 +140,12 @@ export function StartServer(config) {
                 // Movement.
                 case "movement":
                     if(me.player && !me.player.dead) {
+                        if(me.reportedMap != message.map) { // Changed map or just spawned in.
+                            me.startLocation.x = message.position.x;
+                            me.startLocation.y = message.position.y;
+                            me.startLocation.z = message.position.z;
+                            me.reportedMap = message.map;
+                        }
                         me.player.position.x = message.localPlayer.position.x;
                         me.player.position.y = message.localPlayer.position.y;
                         me.player.position.z = message.localPlayer.position.z;
@@ -186,17 +193,36 @@ export function StartServer(config) {
                     if(me.player && !me.player.dead) {
                         const victim = connections[message.victimIndex];
                         if(victim && !victim.player.dead) {
-                            victim.player.health -= message.damage; // We trust the client to not send us bad data.
                             victim.player.lastDamage = Date.now();
-                            if(victim.player.health <= 0) {
+                            if(victim.player.health - message.damage <= 0) {
                                 victim.player.dead = true;
-                                victim.player.health = 0;
+                                victim.player.health = 100; // DO NOT ACTUALLY KILL THE PLAYER.
+                                // Send killsound to player.
+                                ws.send(JSON.stringify({
+                                    type: 'command',
+                                    command: `play sounds/damage/last_hit.vsnd`
+                                }));
+                                // Tell victim to respawn
+                                victim.player.teleport = victim.startLocation;
+                                setTimeout(() => {
+                                    victim.player.teleport = new Entity(); // Stop teleporting.
+                                    victim.player.dead = false;
+                                    victim.player.health = 100; // Just in case.
+                                }, 250);
+                            } else {
+                                victim.player.health -= message.damage; // We trust the client to not send us bad data.
+                                // Hurt!
+                                victim.socket.send(JSON.stringify({
+                                    type: 'command',
+                                    command: `play sounds/player/damage/bullet_0${Math.floor(Math.random() * 3) + 1}.vsnd` // Randomize bullet sound up to 3.
+                                }));
                             }
                         }
                     }
                     break;
                 case "alive":
                     if(me.player) {
+                        me.player.teleport = new Entity(); // Stop teleporting.
                         me.player.dead = false;
                         me.player.health = 100;
                     }
