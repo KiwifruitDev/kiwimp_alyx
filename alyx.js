@@ -411,8 +411,8 @@ export function InitVConsole(ws, config) {
 }
 
 export async function UpdateVScript(vconsole_server, connectioninfo, config) {
-    for(let i = 0; i < connectioninfo.connections.length; i++) {
-        const user = connectioninfo.connections[i];
+    for(let i = 0; i < connectioninfo.length; i++) {
+        const user = connectioninfo[i];
         const player = players[user.player.id];
         //if(JSON.stringify(user.player) != JSON.stringify(player.player) || user.username == config.client_username) {
             // Clientside stuff

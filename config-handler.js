@@ -37,7 +37,7 @@ let activeprompts = [];
     if(fs.existsSync(configloc)) {
         config = JSON.parse(fs.readFileSync(configloc, 'utf8'));
         if(config.version !== nodepackage.version && config.disable_config_setup === 'true') {
-            console.log(chalk.red.bold(`\nThe config file is out of date. Config setup will now begin, please open the previous config file for reference.\nAssuming a major update was made, please update to the newest addon release as well.`));
+            console.log(chalk.red.bold(`\nThe config file is out of date. The config wizard will now begin, please open the previous config file for reference.\nAssuming a major update was made, please update to the newest addon release as well.`));
             return new Promise((resolve, reject) => {
                 StartConfigSetup(nodepackage.version).then((config) => {
                     resolve(config);
@@ -56,13 +56,13 @@ let activeprompts = [];
 }
 
 /**
-  * This function starts a guided config setup process for the end user.
-  * @returns {boolean} Whether or not the config setup was successful.
+  * This function starts a guided config wizard for the end user.
+  * @returns {boolean} Whether or not the config wizard was successful.
   */
  function StartConfigSetup() {
     return new Promise((resolve, reject) => {
-        console.log(chalk.magenta.bold("\nWelcome to KCOM's config setup! This will guide you through the process of setting up the config JSON file."));
-        console.log(chalk.magenta("Pay attention to the prompts and the types of values you can enter, invalid values will output their default value.\n"));
+        console.log(chalk.magenta.bold("\nWelcome to KCOM's config wizard! This will guide you through the process of setting up the config JSON file."));
+        console.log(chalk.magenta("Pay attention to the prompts and the types of values you can enter, invalid values will output their default value.\nPress enter to use the default value.\n"));
         for(let key in configtemplate) {
             if(configtemplate.hasOwnProperty(key)) {
                 let value = configtemplate[key];
@@ -84,7 +84,7 @@ let activeprompts = [];
   * Proceed with user prompt for a config option.
   * @param {string} key The key of the config option.
   * @param {string} value The value of the config option.
-  * @returns {boolean} Whether or not the config setup was successful.
+  * @returns {boolean} Whether or not the config wizard was successful.
   */
 function ConfigChoice(key, value, rl) {
     return new Promise((resolve, reject) => {
@@ -136,6 +136,8 @@ function ConfigChoice(key, value, rl) {
             // Write the config to file.
             fs.writeFileSync(configloc, JSON.stringify(config, null, 2));
             rl.close();
+            // Accept input from the command prompt normally.
+            process.stdin.resume();
             resolve(config);
         }
     });

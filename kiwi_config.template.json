@@ -1,15 +1,15 @@
 {
     "disable_config_setup": {
-        "name": "Disable Config Setup",
+        "name": "Config: Disable Config Wizard",
         "type": "boolean",
         "default": "false",
         "skip": {
             "true": "complete_setup"
         },
-        "description": "If false, this setup process will continue and create or update the config file.\nIf true, the setup will exit and it will be necessary to manually edit the config file from this point on."
+        "description": "If false, this wizard will continue and create or update the config file.\nIf true, the setup will exit and it will be necessary to manually edit the config file from this point on.\nThe application will continue after exiting setup, so if you have already configured everything then set this to true."
     },
     "server_enabled": {
-        "name": "Enable Server",
+        "name": "Server: Enable",
         "type": "boolean",
         "default": "false",
         "skip": {
@@ -18,108 +18,138 @@
         "description": "If true, a server will be hosted on the local machine.\nIf you are connecting to a remote server, you should set this to false."
     },
     "server_ip": {
-        "name": "Server IP Address",
+        "name": "Server: Host IP Address",
         "type": "string",
         "default": "localhost",
-        "description": "The IP address of the hosted server.\nDo not include the port suffix."
+        "description": "The local IP address to host the server on.\nIt is recommended to leave this at its default value.\nThis should only be changed if you have multiple network interfaces.\nDo not include the port suffix."
     },
     "server_port": {
-        "name": "Server Port",
+        "name": "Server: Port",
         "type": "number",
         "default": "27025",
-        "description": "The port of the hosted server."
+        "description": "The port of the hosted server.\nIf this server will be hosted on the internet, make sure to forward the port via your router."
     },
     "server_password": {
-        "name": "Server Password",
+        "name": "Server: Password",
         "type": "string",
         "default": "",
-        "description": "The password of the hosted server.\nClients will be required to provide this password to connect to the server.\nThis field is optional."
+        "description": "The password of the hosted server.\nClients will be required to provide this password to connect to the server.\nThis field is optional and will ignore password authentication if left blank."
     },
     "server_max_players": {
-        "name": "Max Players",
+        "name": "Server: Max Players",
         "type": "number",
         "default": "16",
-        "description": "The maximum number of players that can be connected to the hosted server."
+        "description": "The maximum number of players that can be connected to the hosted server.\nThe absolute maximum is 16, do not set this higher."
     },
     "server_map": {
-        "name": "Map",
+        "name": "Server: Initial Map",
         "type": "string",
-        "default": "",
-        "description": "The map of the hosted server.\nClients will change to this map once connected to the server."
+        "default": "mp_kiwitest",
+        "description": "The starting map of the hosted server.\nClients will change to this map once connected to the server.\nIf a client changes maps while connected, the server will \"set\" this value to the new map alongside changing the map for everyone else."
+    },
+    "server_update_interval": {
+        "name": "Server: Update Interval",
+        "type": "number",
+        "default": "100",
+        "description": "The amount of time to wait between sending positioning updates to all clients.\nThe default value is 0.1 seconds.\nThe farthest from 0 this value is will reduce the chances of desync.\nThe closer to 0 this value is will smooth out movements for players.\nIt is not recommended to set this value to 0.\nThis is in milliseconds."
     },
     "server_memo": {
-        "name": "Server Memo",
+        "name": "Server: Message Of The Day",
         "type": "string",
         "default": "",
-        "description": "A memo for the hosted server.\nThis memo will be displayed to players when they connect to the server."
+        "description": "A friendly greeting message.\nThis text will be displayed to players when they connect to the server.\nMake sure that its length is not too long or the client may prematurely time out."
+    },
+    "server_host_username": {
+        "name": "Server: Host Player Username",
+        "type": "string",
+        "default": "",
+        "description": "The username to consider as the host of the server.\nClients will be able to identify the host if they have this username.\nThis field is optional, otherwise the first player to connect will be considered the host."
+    },
+    "server_host_authid": {
+        "name": "Server: Host Player AuthID",
+        "type": "string",
+        "default": "",
+        "description": "The required AuthID to authenticate the host player.\nIf a player connects with the host's username, they would be considered as the host if they have the correct AuthID.\nOtherwise, that client will not be able to authenticate.\nThis field is optional, otherwise the first player to connect will be considered the host."
+    },
+    "server_timeout_interval": {
+        "name": "Server: Timeout Interval",
+        "type": "number",
+        "default": "30000",
+        "description": "The amount of time to wait between pinging clients.\nIf a client does not respond to a ping, they will be disconnected.\nIt is not recommended to set this to a low value.\nThe default value is 30 seconds.\nThis is in milliseconds."
     },
     "client_enabled": {
-        "name": "Enable Client",
+        "name": "Client: Enable",
         "type": "boolean",
         "default": "true",
         "skip": {
             "false": "complete_setup"
         },
-        "description": "If true, the client system will be enabled and will connect to a remote server.\nIf you are hosting a server, you should set this to false.\nNote: To create a listen server, enable both the server and client and set both IPs to localhost."
+        "description": "If true, the client system will be enabled and will connect to a remote server.\nIf you are hosting a dedicated wserver, you should set this to false.\nNote: To create a listen server, enable both the server and client and set both IPs to localhost."
     },
     "client_ip": {
-        "name": "Client IP Address",
+        "name": "Client: Remote IP Address",
         "type": "string",
         "default": "localhost",
-        "description": "The IP address for the client to connect to.\nDo not include the port suffix."
+        "description": "For non-listen servers, this is the IP address for the client to connect to.\nThe server host should provide their public IP address for you to connect to.\nDo not include the port suffix."
     },
     "client_port": {
-        "name": "Client Port",
+        "name": "Client: Port",
         "type": "number",
         "default": "27025",
-        "description": "The port for the client to connect to."
+        "description": "The port for the client to connect to.\nMake sure that the remote server has forwarded this port before connecting."
     },
     "client_password": {
-        "name": "Client Password",
+        "name": "Client: Server Password",
         "type": "string",
         "default": "",
-        "description": "The password of the server the client will connect to.\nThe server owner will need to provide this password for the client to connect.\nIf the server does not require a password, this field can be left blank."
+        "description": "The password of the server that the client will connect to.\nThe server owner will need to provide this password for the client to be able to connect, if set.\nIf the server does not require a password, this field will be ignored."
     },
     "client_username": {
-        "name": "Client Username",
+        "name": "Client: Username",
         "type": "string",
         "default": "",
         "nospaces": true,
-        "description": "The username of the client.\nThis is used to identify the client to the server."
+        "description": "The username of the client.\nThis is used to identify yourself to other players."
     },
     "client_authid": {
-        "name": "Client AuthID",
+        "name": "Client: AuthID",
         "type": "string",
         "default": "",
         "nospaces": true,
-        "description": "The AuthID of the client.\nSet this to a random string, this is used to identify persistent clients and reserved usernames.\nFor example, if a server saves data for your client, it will only load data for clients with the same AuthID and username combination.\nThis is NOT a password, do not set this to a password."
+        "description": "A protected AuthID of the client.\nSet this to a random string, this is used to identify persistent clients and reserved usernames.\nFor example, if a server saves data for your client, it will only load data for clients with the same AuthID and username combination.\nThis is NOT a password, do not set this to a password.\nThe server can see this value, but other clients cannot."
     },
     "client_memo": {
-        "name": "Client Memo",
+        "name": "Client: Memo",
         "type": "string",
         "default": "",
-        "description": "A personal memo for the client.\nThis will be displayed whenever the client connects to the server."
+        "description": "A personal memo for the client.\nThis will be displayed as chat text whenever the client connects to the server.\nChat text plays a sound for all clients, so this is a good place to identify yourself."
     },
     "client_player_collision": {
-        "name": "Allow Player Collision and Damage",
+        "name": "Client: Player Collision and Damage",
         "type": "boolean",
         "default": "false",
-        "description": "If true, you will be able to collide with other players and damage them.\nIf false, other players' collision and damage will be disabled for you.\nPlayers can damage you even if this option is disabled on your end.\nSome issues arise when using this mode, for instance if a player gets caught in a barnacle then you will crash."
+        "description": "**This is an experimental option, it is recommended to leave this default!**\nIf true, you will be able to collide with other players and damage them.\nIf false, other players' collision and damage will be disabled for you.\nPlayers can damage you even if this option is disabled on your end.\nSome issues arise when using this mode, for instance if a player gets caught in a barnacle then you will crash."
     },
     "client_print_vconsole": {
-        "name": "Show VConsole Output",
+        "name": "Client: Show VConsole Output",
         "type": "boolean",
         "default": "false",
-        "description": "Recommended for debugging purposes.\nIf true, text printed to the VConsole will be displayed in the window.\nIf false, text printed to the VConsole will be ignored and may improve performance."
+        "description": "Recommended for debugging purposes.\nIf true, non-KCOM-related text will be printed to the VConsole and displayed in the command prompt.\nIf false, all end-user text printed to the VConsole will be ignored and may improve performance."
     },
     "client_grace_period": {
-        "name": "Interactive Grace Period",
+        "name": "Client: Grace Period",
         "type": "number",
         "default": "5000",
-        "description": "This is the period of time where interactive objects are disabled on your end during a time where other players are using them.\nThis is to prevent players from accidentally interacting with objects that are in use by other players.\nThe default value is 5 seconds, which means you must wait 5 seconds after a player touches something before you can interact with it again.\nIdeally, all clients should use the same value for this option.\nThis is in milliseconds."
+        "description": "This is a period of time where interactive entities (physics objects, triggers, buttons, etc.) are disabled on your end during a time where other players are using them.\nThis is to prevent players from accidentally interacting with objects that are in use by other players.\nThe default value is 5 seconds, which means you must wait 5 seconds after a player touches something before you can interact with it again.\nIdeally, all clients should use the same value for this option.\nDo not set this to 0.\nThis is in milliseconds."
+    },
+    "client_anarchy_mode": {
+        "name": "Client: Anarchy Mode",
+        "type": "boolean",
+        "default": "false",
+        "description": "**This is an experimental option, it is recommended to leave this default!**\nWhether to accept entity interaction data from all players or just the \"host\" player.\nIf true, entity interaction from any player will be replicated on your client.\nIf false, only entity interaction from the server's \"host\" player will be replicated on your client.\nAnarchy mode can cause issues with some entities, such as physics objects flying around due to desync.\nOnly set this to true if it is necessary to interact with other players."
     },
     "note_setup_complete": {
-        "name": "Setup Complete",
+        "name": "Note: Setup Complete",
         "type": "note",
         "description": "The setup process has completed.\nPress enter to save the config file and continue."
     },

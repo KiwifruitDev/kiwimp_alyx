@@ -1,7 +1,7 @@
 {
   "name": "kiwimp_alyx",
-  "version": "1.0.0",
-  "description": "Kiwifruit's Co-Op HLVR Mod",
+  "version": "1.0.1",
+  "description": "Kiwi's Co-Op Mod for HLAVR",
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
