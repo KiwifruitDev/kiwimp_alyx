@@ -1,5 +1,7 @@
 # Kiwi's Co-Op Mod for Half-Life: Alyx (KCOM)
 
+# Superceded by [TeamPopplio/KCOM](https://github.com/TeamPopplio/KCOM)
+
 A work-in-progress customizable multiplayer and co-op mod for [Half-Life: Alyx](https://store.steampowered.com/app/546560/HalfLife_Alyx/) by [KiwifruitDev](https://github.com/TeamPopplio).
 
 ## Warning
